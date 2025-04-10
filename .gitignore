@@ -12,6 +12,7 @@ wheels/
 # Environment variables
 .env
 .env.*
+!.env.example
 
 # VsCode settings
 .vscode/
