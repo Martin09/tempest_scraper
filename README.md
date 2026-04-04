@@ -1,5 +1,6 @@
-# Tempest Weather Station Scraper
+# Tempest Weather Station Scraper
 
+[![Tests](https://github.com/Martin09/tempest_scraper/actions/workflows/tests.yml/badge.svg)](https://github.com/Martin09/tempest_scraper/actions/workflows/tests.yml)
 [![Build and Push Docker Image](https://github.com/Martin09/tempest_scraper/actions/workflows/docker.yml/badge.svg)](https://github.com/Martin09/tempest_scraper/actions/workflows/docker.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
