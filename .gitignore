@@ -16,3 +16,6 @@ wheels/
 
 # VsCode settings
 .vscode/
+
+# Pytest cache
+.pytest_cache/
