@@ -13,8 +13,22 @@ from bs4 import Tag
 _LOGGER = logging.getLogger(__name__)
 
 _CARDINALS = [
-    "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
-    "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW",
+    "N",
+    "NNE",
+    "NE",
+    "ENE",
+    "E",
+    "ESE",
+    "SE",
+    "SSE",
+    "S",
+    "SSW",
+    "SW",
+    "WSW",
+    "W",
+    "WNW",
+    "NW",
+    "NNW",
 ]
 
 
@@ -87,9 +101,7 @@ def parse_epoch_timestamp(ts_str: str | None) -> datetime.datetime | None:
         return None
 
 
-def parse_detailed_timestamp(
-    timestamp_str: str | None, timezone_str: str | None
-) -> datetime.datetime | None:
+def parse_detailed_timestamp(timestamp_str: str | None, timezone_str: str | None) -> datetime.datetime | None:
     """Parse 'MM/DD/YYYY HH:MM:SS am/pm' into a timezone-aware datetime.
 
     Note: Uses zoneinfo.ZoneInfo. replace(tzinfo=tz) is correct for zoneinfo

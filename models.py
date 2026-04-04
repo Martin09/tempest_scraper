@@ -26,7 +26,6 @@ class WeatherData:
     humidity: float | None = None  # %
     dew_point: float | None = None  # °C
 
-
     # Pressure
     sea_level_pressure: float | None = None  # mbar
     station_pressure: float | None = None  # mbar
@@ -70,4 +69,3 @@ class WeatherData:
     time_of_last_lightning_strike: datetime.datetime | None = None
     distance_last_lightning_strike: str | None = None
     lightning_strikes_last_3_hours: int = 0
-

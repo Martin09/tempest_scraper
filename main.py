@@ -19,13 +19,13 @@ from datetime import datetime, timedelta
 
 from dotenv import load_dotenv
 
-# Load .env BEFORE any os.environ.get() calls
-load_dotenv()
-
 from const import DEFAULT_UPDATE_INTERVAL, MAX_RETRY_ATTEMPTS, OFFLINE_THRESHOLD_MULTIPLIER
 from models import WeatherData
 from mqtt_client import MQTTClient
 from scraper_page import TempestWxScraperApiClient
+
+# Load .env BEFORE any os.environ.get() calls
+load_dotenv()
 
 logging.basicConfig(
     level=logging.INFO,
@@ -44,9 +44,7 @@ class TempestScraper:
         self.mqtt_port = int(os.environ.get("MQTT_PORT", 1883))
         self.mqtt_username = os.environ.get("MQTT_USERNAME") or None
         self.mqtt_password = os.environ.get("MQTT_PASSWORD") or None
-        self.update_interval = int(
-            os.environ.get("SCRAPE_INTERVAL_MINUTES", DEFAULT_UPDATE_INTERVAL)
-        )
+        self.update_interval = int(os.environ.get("SCRAPE_INTERVAL_MINUTES", DEFAULT_UPDATE_INTERVAL))
 
         if not self.station_id:
             raise ValueError("STATION_ID environment variable is required.")
@@ -92,9 +90,7 @@ class TempestScraper:
                             data.temperature,
                         )
                         return True
-                    _LOGGER.error(
-                        "MQTT publish failed (attempt %d/%d).", attempt, MAX_RETRY_ATTEMPTS
-                    )
+                    _LOGGER.error("MQTT publish failed (attempt %d/%d).", attempt, MAX_RETRY_ATTEMPTS)
                 else:
                     _LOGGER.warning(
                         "No data available from scraper (attempt %d/%d).",
@@ -102,9 +98,7 @@ class TempestScraper:
                         MAX_RETRY_ATTEMPTS,
                     )
             except Exception:
-                _LOGGER.exception(
-                    "Error during scrape/publish (attempt %d/%d).", attempt, MAX_RETRY_ATTEMPTS
-                )
+                _LOGGER.exception("Error during scrape/publish (attempt %d/%d).", attempt, MAX_RETRY_ATTEMPTS)
 
             if attempt < MAX_RETRY_ATTEMPTS:
                 wait = 2**attempt
@@ -169,10 +163,8 @@ class TempestScraper:
                 await self.scrape_and_publish()
                 # Wait for the next poll or an early stop signal
                 try:
-                    await asyncio.wait_for(
-                        stop_event.wait(), timeout=self.update_interval * 60
-                    )
-                except asyncio.TimeoutError:
+                    await asyncio.wait_for(stop_event.wait(), timeout=self.update_interval * 60)
+                except TimeoutError:
                     pass  # Normal timeout — time for the next scrape
         finally:
             await self._async_cleanup()

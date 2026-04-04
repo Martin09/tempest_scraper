@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import asdict
-from importlib.metadata import version, PackageNotFoundError
+from importlib.metadata import PackageNotFoundError, version
 from typing import Any
 
 import paho.mqtt.client as mqtt
@@ -67,17 +67,13 @@ class MQTTClient:
             self._client.username_pw_set(username, password)
 
         # LWT: if we lose connection the broker will publish "offline" for us
-        self._client.will_set(
-            self.availability_topic, payload="offline", qos=1, retain=True
-        )
+        self._client.will_set(self.availability_topic, payload="offline", qos=1, retain=True)
 
     # ------------------------------------------------------------------
     # Callbacks (paho-mqtt v2 signatures)
     # ------------------------------------------------------------------
 
-    def _on_connect(
-        self, client: mqtt.Client, userdata: Any, flags: Any, reason_code: Any, properties: Any
-    ) -> None:
+    def _on_connect(self, client: mqtt.Client, userdata: Any, flags: Any, reason_code: Any, properties: Any) -> None:
         if reason_code.is_failure:
             _LOGGER.error("Failed to connect to MQTT broker: %s", reason_code)
             return
@@ -153,30 +149,34 @@ class MQTTClient:
 
         for sensor in SENSOR_CONFIGS:
             unique_id = f"tempest_{self.station_id}_{sensor.object_id}"
-            cfg = _strip_none({
-                **common,
-                "name": sensor.name,
-                "unique_id": unique_id,
-                "value_template": sensor.value_template,
-                "device_class": sensor.device_class,
-                "state_class": sensor.state_class,
-                "unit_of_measurement": sensor.unit_of_measurement,
-            })
+            cfg = _strip_none(
+                {
+                    **common,
+                    "name": sensor.name,
+                    "unique_id": unique_id,
+                    "value_template": sensor.value_template,
+                    "device_class": sensor.device_class,
+                    "state_class": sensor.state_class,
+                    "unit_of_measurement": sensor.unit_of_measurement,
+                }
+            )
             topic = f"{MQTT_DISCOVERY_PREFIX}/sensor/{unique_id}/config"
             self._client.publish(topic, payload=json.dumps(cfg), qos=1, retain=True)
             _LOGGER.debug("Published sensor discovery → %s", topic)
 
         for bsensor in BINARY_SENSOR_CONFIGS:
             unique_id = f"tempest_{self.station_id}_{bsensor.object_id}"
-            cfg = _strip_none({
-                **common,
-                "name": bsensor.name,
-                "unique_id": unique_id,
-                "value_template": bsensor.value_template,
-                "device_class": bsensor.device_class,
-                "payload_on": bsensor.payload_on,
-                "payload_off": bsensor.payload_off,
-            })
+            cfg = _strip_none(
+                {
+                    **common,
+                    "name": bsensor.name,
+                    "unique_id": unique_id,
+                    "value_template": bsensor.value_template,
+                    "device_class": bsensor.device_class,
+                    "payload_on": bsensor.payload_on,
+                    "payload_off": bsensor.payload_off,
+                }
+            )
             topic = f"{MQTT_DISCOVERY_PREFIX}/binary_sensor/{unique_id}/config"
             self._client.publish(topic, payload=json.dumps(cfg), qos=1, retain=True)
             _LOGGER.debug("Published binary_sensor discovery → %s", topic)
@@ -187,9 +187,7 @@ class MQTTClient:
         """Publish the full WeatherData payload as a single JSON state message."""
         try:
             payload = json.dumps(asdict(data), default=str)
-            result = self._client.publish(
-                self.state_topic, payload=payload, qos=1, retain=False
-            )
+            result = self._client.publish(self.state_topic, payload=payload, qos=1, retain=False)
             result.wait_for_publish(timeout=5.0)
             if result.rc == mqtt.MQTT_ERR_SUCCESS:
                 _LOGGER.info("Published WeatherData to %s", self.state_topic)

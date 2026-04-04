@@ -23,8 +23,10 @@ from playwright.async_api import (
     BrowserContext,
     Page,
     Playwright,
-    TimeoutError as PlaywrightTimeoutError,
     async_playwright,
+)
+from playwright.async_api import (
+    TimeoutError as PlaywrightTimeoutError,
 )
 
 from const import (
@@ -69,9 +71,7 @@ def _parse_temperature_humidity(tile: Tag, data: WeatherData) -> None:
         get_text_safely(tile.find("p", {"data-param": "param-air_temp_with_symbol_and_units"}))
     )
     data.is_freezing = data.temperature is not None and data.temperature <= 0.0
-    data.humidity = safe_parse_float(
-        get_text_safely(tile.find("p", {"data-param": "param-rh_with_symbol"}))
-    )
+    data.humidity = safe_parse_float(get_text_safely(tile.find("p", {"data-param": "param-rh_with_symbol"})))
     dp_label = tile.find("p", {"data-param": "param-heat_index_or_dew_point_label"})
     dp_val = tile.find("p", {"data-param": "param-heat_index_or_dew_point_display"})
     if "dew point" in get_text_safely(dp_label, "").lower():
@@ -82,38 +82,26 @@ def _parse_pressure(tile: Tag, data: WeatherData) -> None:
     data.sea_level_pressure = safe_parse_float(
         get_text_safely(tile.find("p", {"data-param": "param-sea_level_pres_display"}))
     )
-    data.pressure_trend = get_text_safely(
-        tile.find("p", {"data-param": "param-pres_trend_localized"})
-    )
+    data.pressure_trend = get_text_safely(tile.find("p", {"data-param": "param-pres_trend_localized"}))
 
 
 def _parse_lightning(tile: Tag, data: WeatherData) -> None:
     last_strike = tile.find("p", {"data-param": "param-lightning_last_strike_fuzzy"})
-    data.time_of_last_lightning_strike = parse_epoch_timestamp(
-        get_attr_safely(last_strike, "data-timestamp")
-    )
+    data.time_of_last_lightning_strike = parse_epoch_timestamp(get_attr_safely(last_strike, "data-timestamp"))
     data.distance_last_lightning_strike = get_text_safely(
         tile.find("p", {"data-param": "param-lightning_last_strike_distance_text_display"})
     )
     data.lightning_strikes_last_3_hours = (
-        safe_parse_int(
-            get_text_safely(tile.find("p", {"data-param": "param-lightning_strike_count_last_3hrs"}))
-        ) or 0
+        safe_parse_int(get_text_safely(tile.find("p", {"data-param": "param-lightning_strike_count_last_3hrs"}))) or 0
     )
     data.is_lightning = data.lightning_strikes_last_3_hours > 0
 
 
 def _parse_wind(tile: Tag, data: WeatherData) -> None:
-    data.wind_direction = safe_parse_int(
-        get_text_safely(tile.find("p", {"data-param": "param-wind_dir_display"}))
-    )
+    data.wind_direction = safe_parse_int(get_text_safely(tile.find("p", {"data-param": "param-wind_dir_display"})))
     data.wind_cardinal = degrees_to_cardinal(data.wind_direction)
-    data.wind_speed = safe_parse_float(
-        get_text_safely(tile.find("p", {"data-param": "param-wind_avg_display"}))
-    )
-    lull_gust_text = get_text_safely(
-        tile.find("p", {"data-param": "param-wind_lull_gust_with_units"})
-    )
+    data.wind_speed = safe_parse_float(get_text_safely(tile.find("p", {"data-param": "param-wind_avg_display"})))
+    lull_gust_text = get_text_safely(tile.find("p", {"data-param": "param-wind_lull_gust_with_units"}))
     if lull_gust_text:
         match = re.search(r"([\d.,]+)\s*-\s*([\d.,]+)", lull_gust_text)
         if match:
@@ -135,9 +123,7 @@ def _parse_rain(tile: Tag, data: WeatherData) -> None:
         data.precipitation_rate = None  # Grid view doesn't expose numeric rate directly
 
     data.precipitation_today = safe_parse_float(
-        get_text_safely(
-            tile.find("p", {"data-param": "param-precip_accum_local_today_final_display_with_units"})
-        )
+        get_text_safely(tile.find("p", {"data-param": "param-precip_accum_local_today_final_display_with_units"}))
     )
     data.precipitation_yesterday = safe_parse_float(
         get_text_safely(
@@ -150,24 +136,16 @@ def _parse_rain(tile: Tag, data: WeatherData) -> None:
 
 
 def _parse_light_uv(tile: Tag, data: WeatherData) -> None:
-    data.uv_index = safe_parse_float(
-        get_text_safely(tile.find("p", {"data-param": "param-uv_with_index"}))
-    )
-    data.illuminance = safe_parse_int(
-        get_text_safely(tile.find("p", {"data-param": "param-lux_display_with_units"}))
-    )
+    data.uv_index = safe_parse_float(get_text_safely(tile.find("p", {"data-param": "param-uv_with_index"})))
+    data.illuminance = safe_parse_int(get_text_safely(tile.find("p", {"data-param": "param-lux_display_with_units"})))
     data.solar_radiation = safe_parse_int(
         get_text_safely(tile.find("p", {"data-param": "param-solar_radiation_display_with_units"}))
     )
 
 
 def _parse_diagnostics(tile: Tag, data: WeatherData) -> None:
-    data.voltage = safe_parse_float(
-        get_text_safely(tile.find("p", {"data-param": "param-battery"}))
-    )
-    data.power_save_mode = get_text_safely(
-        tile.find("p", {"data-param": "param-battery_state"})
-    )
+    data.voltage = safe_parse_float(get_text_safely(tile.find("p", {"data-param": "param-battery"})))
+    data.power_save_mode = get_text_safely(tile.find("p", {"data-param": "param-battery_state"}))
 
 
 def _parse_advanced_stats(soup: BeautifulSoup, data: WeatherData) -> None:
@@ -259,9 +237,7 @@ async def scrape_weather_data(
     context: BrowserContext | None = None
 
     try:
-        context = await browser.new_context(
-            user_agent=COMMON_USER_AGENT, viewport=COMMON_VIEWPORT
-        )
+        context = await browser.new_context(user_agent=COMMON_USER_AGENT, viewport=COMMON_VIEWPORT)
         for pattern in _BLOCK_PATTERNS:
             await context.route(pattern, lambda route: route.abort())
 

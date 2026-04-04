@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import datetime
+
 import pytest
 
 from parsing import (
-    degrees_to_cardinal,
     cardinal_to_degrees,
+    degrees_to_cardinal,
     parse_epoch_timestamp,
     safe_parse_float,
     safe_parse_int,
@@ -58,15 +59,18 @@ class TestSafeParseInt:
 
 
 class TestDegreesToCardinal:
-    @pytest.mark.parametrize("degrees,expected", [
-        (0, "N"),
-        (90, "E"),
-        (180, "S"),
-        (270, "W"),
-        (360, "N"),   # wraps
-        (45, "NE"),
-        (315, "NW"),
-    ])
+    @pytest.mark.parametrize(
+        "degrees,expected",
+        [
+            (0, "N"),
+            (90, "E"),
+            (180, "S"),
+            (270, "W"),
+            (360, "N"),  # wraps
+            (45, "NE"),
+            (315, "NW"),
+        ],
+    )
     def test_known_directions(self, degrees, expected):
         assert degrees_to_cardinal(degrees) == expected
 

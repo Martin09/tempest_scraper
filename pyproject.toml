@@ -30,7 +30,7 @@ exclude = [".git", ".ruff_cache", ".venv", "__pycache__", "build", "dist"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM", "C"]
-ignore = ["E501"]
+ignore = ["E501", "SIM105", "C901"]
 fixable = ["ALL"]
 
 [tool.ruff.lint.per-file-ignores]

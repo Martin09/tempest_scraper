@@ -14,7 +14,6 @@ import pytest
 from models import WeatherData
 from sensor import BINARY_SENSOR_CONFIGS, SENSOR_CONFIGS
 
-
 _WEATHER_FIELDS = {f.name for f in fields(WeatherData)}
 _ALL_CONFIGS = [*SENSOR_CONFIGS, *BINARY_SENSOR_CONFIGS]
 
@@ -24,8 +23,7 @@ def test_value_template_references_valid_field(sensor):
     """Each sensor's value_template must reference an existing WeatherData field."""
     match = re.search(r"value_json\.(\w+)", sensor.value_template)
     assert match, (
-        f"Sensor '{sensor.object_id}' value_template has no 'value_json.<field>' reference: "
-        f"{sensor.value_template!r}"
+        f"Sensor '{sensor.object_id}' value_template has no 'value_json.<field>' reference: {sensor.value_template!r}"
     )
     field_name = match.group(1)
     assert field_name in _WEATHER_FIELDS, (
