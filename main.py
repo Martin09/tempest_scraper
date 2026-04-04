@@ -1,52 +1,65 @@
 #!/usr/bin/env python3
 
-"""Main module for the Tempest Weather Station scraper."""
+"""Main entry point for the Tempest Weather Station scraper.
+
+Reads configuration from environment variables (load from .env automatically).
+Uses a single persistent asyncio event loop — no repeated asyncio.run() calls
+and no `schedule` dependency. The Playwright browser is kept alive between
+scrapes inside the API client.
+"""
+
+from __future__ import annotations
 
 import asyncio
 import logging
 import os
-import time
+import signal
 from datetime import datetime, timedelta
 
-import schedule
+from dotenv import load_dotenv
 
+# Load .env BEFORE any os.environ.get() calls
+load_dotenv()
+
+from const import DEFAULT_UPDATE_INTERVAL, MAX_RETRY_ATTEMPTS, OFFLINE_THRESHOLD_MULTIPLIER
+from models import WeatherData
 from mqtt_client import MQTTClient
-from scraper_map import TempestWxScraperApiClient
+from scraper_page import TempestWxScraperApiClient
 
-DEFAULT_UPDATE_INTERVAL = 5  # Default update interval in minutes
-
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
+    format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 _LOGGER = logging.getLogger(__name__)
 
 
 class TempestScraper:
-    """Main scraper class coordinating API and MQTT clients."""
+    """Coordinates the page scraper and MQTT publisher."""
 
-    def __init__(self):
-        """Initialize the scraper."""
-        self.station_id = os.environ.get("STATION_ID")
-        self.mqtt_host = os.environ.get("MQTT_HOST")
+    def __init__(self) -> None:
+        self.station_id = os.environ.get("STATION_ID", "").strip()
+        self.mqtt_host = os.environ.get("MQTT_HOST", "").strip()
         self.mqtt_port = int(os.environ.get("MQTT_PORT", 1883))
-        self.mqtt_username = os.environ.get("MQTT_USERNAME")
-        self.mqtt_password = os.environ.get("MQTT_PASSWORD")
-        self.update_interval = int(os.environ.get("SCRAPE_INTERVAL_MINUTES", DEFAULT_UPDATE_INTERVAL))
+        self.mqtt_username = os.environ.get("MQTT_USERNAME") or None
+        self.mqtt_password = os.environ.get("MQTT_PASSWORD") or None
+        self.update_interval = int(
+            os.environ.get("SCRAPE_INTERVAL_MINUTES", DEFAULT_UPDATE_INTERVAL)
+        )
+
+        if not self.station_id:
+            raise ValueError("STATION_ID environment variable is required.")
+        if not self.mqtt_host:
+            raise ValueError("MQTT_HOST environment variable is required.")
 
         self.api_client: TempestWxScraperApiClient | None = None
         self.mqtt_client: MQTTClient | None = None
         self.last_successful_scrape: datetime | None = None
 
     def initialize(self) -> bool:
-        """Initialize clients."""
+        """Initialise the API and MQTT clients."""
         try:
-            # Initialize API client
             self.api_client = TempestWxScraperApiClient(self.station_id)
-
-            # Initialize MQTT client
             self.mqtt_client = MQTTClient(
                 station_id=self.station_id,
                 host=self.mqtt_host,
@@ -54,78 +67,116 @@ class TempestScraper:
                 username=self.mqtt_username,
                 password=self.mqtt_password,
             )
-
             if not self.mqtt_client.connect():
-                raise RuntimeError("Failed to connect to MQTT broker")
-
+                raise RuntimeError("Failed to connect to MQTT broker.")
             return True
-
-        except Exception as e:
-            _LOGGER.error(f"Initialization failed: {e}")
-            self.cleanup()
+        except Exception:
+            _LOGGER.exception("Initialization failed.")
+            self._sync_cleanup()
             return False
 
-    async def scrape_and_publish(self):
-        """Perform scraping and publish results."""
-        try:
-            weather_data = await self.api_client.async_get_data()
-
-            if weather_data.data_available:
-                self.last_successful_scrape = datetime.now()
-                if self.mqtt_client.publish_data(weather_data):
-                    _LOGGER.info(f"Published data for station {self.station_id}. Temp: {weather_data.temperature}°C")
+    async def scrape_and_publish(self) -> bool:
+        """Scrape data with exponential-backoff retries; publish on success."""
+        for attempt in range(1, MAX_RETRY_ATTEMPTS + 1):
+            try:
+                data: WeatherData = await self.api_client.async_get_data()
+                if data.data_available:
+                    self.last_successful_scrape = datetime.now()
+                    if self.mqtt_client.publish_data(data):
+                        _LOGGER.info(
+                            "Published data for station %s — temp: %s°C",
+                            self.station_id,
+                            data.temperature,
+                        )
+                        return True
+                    _LOGGER.error(
+                        "MQTT publish failed (attempt %d/%d).", attempt, MAX_RETRY_ATTEMPTS
+                    )
                 else:
-                    _LOGGER.error("Failed to publish data")
-            else:
-                self._handle_failed_scrape()
+                    _LOGGER.warning(
+                        "No data available from scraper (attempt %d/%d).",
+                        attempt,
+                        MAX_RETRY_ATTEMPTS,
+                    )
+            except Exception:
+                _LOGGER.exception(
+                    "Error during scrape/publish (attempt %d/%d).", attempt, MAX_RETRY_ATTEMPTS
+                )
 
-        except Exception as e:
-            _LOGGER.error(f"Error during scrape and publish: {e}")
-            self._handle_failed_scrape()
+            if attempt < MAX_RETRY_ATTEMPTS:
+                wait = 2**attempt
+                _LOGGER.info("Retrying in %ds…", wait)
+                await asyncio.sleep(wait)
 
-    def _handle_failed_scrape(self):
-        """Handle failed scrape attempts."""
-        if self.last_successful_scrape and (datetime.now() - self.last_successful_scrape) > timedelta(
-            minutes=self.update_interval * 3
-        ):
-            _LOGGER.warning("Multiple scrape failures, marking as offline")
+        self._handle_failed_scrape()
+        return False
+
+    def _handle_failed_scrape(self) -> None:
+        """Mark the station offline if it has been unreachable for too long."""
+        threshold = timedelta(minutes=self.update_interval * OFFLINE_THRESHOLD_MULTIPLIER)
+        if self.last_successful_scrape and (datetime.now() - self.last_successful_scrape) > threshold:
+            _LOGGER.warning("Repeated scrape failures — publishing offline status.")
             self.mqtt_client.publish_availability("offline")
 
-    def cleanup(self):
-        """Clean up resources."""
+    async def _async_cleanup(self) -> None:
+        if self.mqtt_client:
+            self.mqtt_client.disconnect()
+        if self.api_client:
+            await self.api_client.close()
+
+    def _sync_cleanup(self) -> None:
+        """Synchronous cleanup used only during initialization failures."""
         if self.mqtt_client:
             self.mqtt_client.disconnect()
 
-        if self.api_client:
-            asyncio.run(self.api_client.close())
-
-    def run(self):
-        """Run the main scraper loop."""
+    async def run(self) -> None:
+        """Main async loop — runs until SIGTERM/SIGINT is received."""
         if not self.initialize():
             return
 
-        _LOGGER.info(f"Starting scraper for station {self.station_id} with {self.update_interval} minute interval")
+        _LOGGER.info(
+            "Starting scraper for station %s, polling every %d min.",
+            self.station_id,
+            self.update_interval,
+        )
 
-        # Initial scrape
-        asyncio.run(self.scrape_and_publish())
+        loop = asyncio.get_running_loop()
+        stop_event = asyncio.Event()
 
-        # Schedule future scrapes
-        schedule.every(self.update_interval).minutes.do(lambda: asyncio.run(self.scrape_and_publish()))
+        def _request_stop() -> None:
+            _LOGGER.info("Shutdown signal received.")
+            stop_event.set()
+
+        # Signal handlers (Unix / Linux containers); silently ignored on Windows
+        for sig in (signal.SIGTERM, signal.SIGINT):
+            try:
+                loop.add_signal_handler(sig, _request_stop)
+            except NotImplementedError:
+                pass  # Windows does not support add_signal_handler
 
         try:
-            while True:
-                schedule.run_pending()
-                time.sleep(1)
-        except KeyboardInterrupt:
-            _LOGGER.info("Shutdown requested")
+            while not stop_event.is_set():
+                await self.scrape_and_publish()
+                # Wait for the next poll or an early stop signal
+                try:
+                    await asyncio.wait_for(
+                        stop_event.wait(), timeout=self.update_interval * 60
+                    )
+                except asyncio.TimeoutError:
+                    pass  # Normal timeout — time for the next scrape
         finally:
-            self.cleanup()
+            await self._async_cleanup()
+            _LOGGER.info("Scraper shut down cleanly.")
 
 
-def main():
-    """Main entry point."""
-    scraper = TempestScraper()
-    scraper.run()
+def main() -> None:
+    """Entry point."""
+    try:
+        scraper = TempestScraper()
+    except ValueError as exc:
+        logging.critical("Configuration error: %s", exc)
+        return
+    asyncio.run(scraper.run())
 
 
 if __name__ == "__main__":
