@@ -46,3 +46,4 @@ known-first-party = ["tempest_scraper"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
