@@ -25,9 +25,7 @@ class WeatherData:
     temperature: float | None = None  # °C
     humidity: float | None = None  # %
     dew_point: float | None = None  # °C
-    feels_like: float | None = None  # °C
-    heat_index: float | None = None  # °C
-    wind_chill: float | None = None  # °C
+
 
     # Pressure
     sea_level_pressure: float | None = None  # mbar
@@ -62,7 +60,6 @@ class WeatherData:
     wet_bulb_temperature: float | None = None  # °C
     wet_bulb_globe_temperature: float | None = None  # °C
     delta_t: float | None = None  # °C
-    air_density: float | None = None  # kg/m³
 
     # Flags
     is_raining: bool = False
@@ -73,4 +70,4 @@ class WeatherData:
     time_of_last_lightning_strike: datetime.datetime | None = None
     distance_last_lightning_strike: str | None = None
     lightning_strikes_last_3_hours: int = 0
-    lightning_strike_count: int | None = None
+
