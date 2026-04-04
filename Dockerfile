@@ -34,10 +34,10 @@ ENV MQTT_USERNAME=""
 ENV MQTT_PASSWORD=""
 ENV SCRAPE_INTERVAL_MINUTES="5"
 
-# Health check: write a heartbeat file on each successful scrape and verify
-# its age here. The CMD below is a lightweight placeholder until the
-# heartbeat file approach is implemented.
-HEALTHCHECK --interval=6m --timeout=15s --start-period=90s --retries=2 \
-    CMD python -c "import sys; sys.exit(0)"
+# Health check: ensure a successful scrape has occurred within the last 10 minutes
+# (2× the default 5-min interval — allows one missed cycle before alerting).
+# main.py touches /tmp/heartbeat after every successful scrape + publish.
+HEALTHCHECK --interval=6m --timeout=15s --start-period=120s --retries=2 \
+    CMD find /tmp/heartbeat -mmin -10 | grep -q heartbeat
 
 CMD ["uv", "run", "main.py"]
