@@ -1,7 +1,7 @@
 [project]
 name = "tempest-scraper"
 version = "0.1.0"
-description = "Add your description here"
+description = "Scrapes TempestWX weather stations and publishes data to MQTT / Home Assistant."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -9,23 +9,39 @@ dependencies = [
     "paho-mqtt>=2.1.0",
     "playwright>=1.51.0",
     "python-dotenv>=1.1.0",
-    "schedule>=1.2.2",
     "tzdata>=2025.2",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0",
     "ruff>=0.3.4",
 ]
+
+# ---------------------------------------------------------------------------
+# Ruff — linter & formatter
+# ---------------------------------------------------------------------------
 
 [tool.ruff]
 target-version = "py312"
 line-length = 120
-
-select = ["E", "F", "W", "I", "UP", "B", "SIM", "C"]
-ignore = ["E501"]  # line length handled by formatter
-
-fixable = ["ALL"]
 exclude = [".git", ".ruff_cache", ".venv", "__pycache__", "build", "dist"]
 
-[tool.ruff.per-file-ignores]
-"__init__.py" = ["E402", "F401"]
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "C"]
+ignore = ["E501"]
+fixable = ["ALL"]
 
-[tool.ruff.isort]
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["E402", "F401"]
+"tests/**" = ["S101"]  # allow assert in tests
+
+[tool.ruff.lint.isort]
 known-first-party = ["tempest_scraper"]
+
+# ---------------------------------------------------------------------------
+# Pytest
+# ---------------------------------------------------------------------------
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

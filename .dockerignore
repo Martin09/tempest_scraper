@@ -1,0 +1,13 @@
+.venv/
+.git/
+.gitignore
+.ruff_cache/
+__pycache__/
+*.pyc
+*.pyo
+.env
+.env.*
+!.env.example
+tests/
+*.md
+.vscode/
