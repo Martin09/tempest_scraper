@@ -1,5 +1,8 @@
 # Tempest Weather Station Scraper
 
+[![Build and Push Docker Image](https://github.com/Martin09/tempest_scraper/actions/workflows/docker.yml/badge.svg)](https://github.com/Martin09/tempest_scraper/actions/workflows/docker.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A Python-based web scraper that extracts weather data from TempestWX.com stations and publishes it to MQTT for Home Assistant integration.
 
 ## Features
@@ -19,7 +22,7 @@ A Python-based web scraper that extracts weather data from TempestWX.com station
 ## Prerequisites
 
 - [uv](https://github.com/astral-sh/uv) package installer
-- [HomeAssistant](https://www.home-assistant.io/) 
+- [HomeAssistant](https://www.home-assistant.io/)
 - MQTT broker (e.g., Mosquitto)
 
 ## Installation
@@ -49,6 +52,15 @@ cp .env.example .env
 
 2. Edit `.env` with your settings.
 
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `STATION_ID` | Your TempestWX.com station ID | - | Yes |
+| `MQTT_HOST` | IP address or hostname of your MQTT Broker | - | Yes |
+| `MQTT_PORT` | Port of your MQTT Broker | `1883` | No |
+| `MQTT_USERNAME` | Username for MQTT Broker | - | No |
+| `MQTT_PASSWORD` | Password for MQTT Broker | - | No |
+| `SCRAPE_INTERVAL_MINUTES` | Frequency of scraping in minutes | `5` | No |
+
 ## Usage
 
 Run the scraper:
@@ -57,6 +69,20 @@ uv run main.py
 ```
 
 ## Docker Support
+
+### Using the Pre-built Image (Recommended)
+You can directly use the completely pre-built image automatically updated on GitHub Container Registry (GHCR):
+
+```bash
+docker run -d \
+  --name tempest-scraper \
+  --restart unless-stopped \
+  --env-file .env \
+  ghcr.io/martin09/tempest_scraper:latest
+```
+
+### Build Locally
+Alternatively, you can build the image yourself from the source:
 
 1. Build the container:
 ```bash
@@ -118,12 +144,16 @@ All sensors will appear under a single device named "Tempest Weather Station".
 
 1. Fork the repository
 2. Create your feature branch
-3. Run tests and linting:
+3. Install pre-commit hooks:
+```bash
+uv run prek install
+```
+4. Run tests and linting (these will also run automatically on commit if hooks are installed):
 ```bash
 uv run ruff check .
 uv run pytest
 ```
-4. Submit a pull request
+5. Submit a pull request
 
 ## License
 
