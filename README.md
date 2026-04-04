@@ -95,7 +95,6 @@ All sensors will appear under a single device named "Tempest Weather Station".
 - **Advanced Metrics**
   - Wet Bulb Temperature
   - Delta T
-  - Air Density
   - Lightning Data
 
 - **Binary Sensors**
@@ -121,7 +120,8 @@ All sensors will appear under a single device named "Tempest Weather Station".
 2. Create your feature branch
 3. Run tests and linting:
 ```bash
-ruff check .
+uv run ruff check .
+uv run pytest
 ```
 4. Submit a pull request
 
