@@ -125,8 +125,6 @@ class TempestScraper:
     async def _async_cleanup(self) -> None:
         if self.mqtt_client:
             self.mqtt_client.disconnect()
-        if self.api_client:
-            await self.api_client.close()
 
     def _sync_cleanup(self) -> None:
         """Synchronous cleanup used only during initialization failures."""
