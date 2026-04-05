@@ -85,11 +85,6 @@ SENSOR_CONFIGS: list[SensorConfig] = [
         unit_of_measurement="mbar",
     ),
     SensorConfig(
-        object_id="pressure_trend",
-        name="Pressure Trend",
-        field="pressure_trend",
-    ),
-    SensorConfig(
         object_id="wind_speed",
         name="Wind Speed",
         field="wind_speed",
@@ -188,19 +183,6 @@ SENSOR_CONFIGS: list[SensorConfig] = [
         unit_of_measurement="lx",
     ),
     SensorConfig(
-        object_id="voltage",
-        name="Battery Voltage",
-        field="voltage",
-        device_class="voltage",
-        state_class="measurement",
-        unit_of_measurement="V",
-    ),
-    SensorConfig(
-        object_id="power_save_mode",
-        name="Power Save Mode",
-        field="power_save_mode",
-    ),
-    SensorConfig(
         object_id="wet_bulb_temperature",
         name="Wet Bulb Temperature",
         field="wet_bulb_temperature",
@@ -223,12 +205,6 @@ SENSOR_CONFIGS: list[SensorConfig] = [
         device_class="temperature",
         state_class="measurement",
         unit_of_measurement="°C",
-    ),
-    SensorConfig(
-        object_id="time_of_last_lightning_strike",
-        name="Time of Last Lightning Strike",
-        field="time_of_last_lightning_strike",
-        device_class="timestamp",
     ),
     SensorConfig(
         object_id="distance_last_lightning_strike",

@@ -29,7 +29,6 @@ class WeatherData:
     # Pressure
     sea_level_pressure: float | None = None  # mbar
     station_pressure: float | None = None  # mbar
-    pressure_trend: str | None = None
 
     # Wind
     wind_speed: float | None = None  # km/h (average)
@@ -51,10 +50,6 @@ class WeatherData:
     solar_radiation: int | None = None  # W/m²
     illuminance: int | None = None  # lux
 
-    # Power / Diagnostics
-    voltage: float | None = None  # V
-    power_save_mode: str | None = None
-
     # Advanced
     wet_bulb_temperature: float | None = None  # °C
     wet_bulb_globe_temperature: float | None = None  # °C
@@ -66,6 +61,5 @@ class WeatherData:
     is_lightning: bool = False
 
     # Lightning
-    time_of_last_lightning_strike: datetime.datetime | None = None
     distance_last_lightning_strike: str | None = None
     lightning_strikes_last_3_hours: int = 0

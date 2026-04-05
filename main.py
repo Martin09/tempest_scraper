@@ -22,7 +22,7 @@ from dotenv import load_dotenv
 from const import DEFAULT_UPDATE_INTERVAL, MAX_RETRY_ATTEMPTS, OFFLINE_THRESHOLD_MULTIPLIER
 from models import WeatherData
 from mqtt_client import MQTTClient
-from scraper_page import TempestWxScraperApiClient
+from scraper_map import TempestWxScraperApiClient
 
 # Load .env BEFORE any os.environ.get() calls
 load_dotenv()
