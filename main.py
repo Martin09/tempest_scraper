@@ -15,11 +15,10 @@ import logging
 import os
 import pathlib
 import signal
-from datetime import datetime, timedelta
 
 from dotenv import load_dotenv
 
-from const import DEFAULT_UPDATE_INTERVAL, MAX_RETRY_ATTEMPTS, OFFLINE_THRESHOLD_MULTIPLIER
+from const import DEFAULT_UPDATE_INTERVAL, MAX_RETRY_ATTEMPTS
 from models import WeatherData
 from mqtt_client import MQTTClient
 from scraper_map import TempestWxScraperApiClient
@@ -53,7 +52,6 @@ class TempestScraper:
 
         self.api_client: TempestWxScraperApiClient | None = None
         self.mqtt_client: MQTTClient | None = None
-        self.last_successful_scrape: datetime | None = None
         self._heartbeat_path = pathlib.Path("/tmp/heartbeat")
 
     def initialize(self) -> bool:
@@ -81,8 +79,8 @@ class TempestScraper:
             try:
                 data: WeatherData = await self.api_client.async_get_data()
                 if data.data_available:
+                    self.mqtt_client.publish_availability("online")
                     if self.mqtt_client.publish_data(data):
-                        self.last_successful_scrape = datetime.now()
                         self._write_heartbeat()
                         _LOGGER.info(
                             "Published data for station %s — temp: %s°C",
@@ -105,7 +103,6 @@ class TempestScraper:
                 _LOGGER.info("Retrying in %ds…", wait)
                 await asyncio.sleep(wait)
 
-        self._handle_failed_scrape()
         return False
 
     def _write_heartbeat(self) -> None:
@@ -114,13 +111,6 @@ class TempestScraper:
             self._heartbeat_path.touch()
         except OSError:
             _LOGGER.warning("Could not write heartbeat file at %s.", self._heartbeat_path)
-
-    def _handle_failed_scrape(self) -> None:
-        """Mark the station offline if it has been unreachable for too long."""
-        threshold = timedelta(minutes=self.update_interval * OFFLINE_THRESHOLD_MULTIPLIER)
-        if self.last_successful_scrape and (datetime.now() - self.last_successful_scrape) > threshold:
-            _LOGGER.warning("Repeated scrape failures — publishing offline status.")
-            self.mqtt_client.publish_availability("offline")
 
     async def _async_cleanup(self) -> None:
         if self.mqtt_client:

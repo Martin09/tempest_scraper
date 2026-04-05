@@ -18,4 +18,3 @@ HOMEASSISTANT_STATUS_TOPIC = "homeassistant/status"
 # --- Scraper ---
 DEFAULT_UPDATE_INTERVAL = 5  # minutes
 MAX_RETRY_ATTEMPTS = 3
-OFFLINE_THRESHOLD_MULTIPLIER = 3  # mark offline after N * update_interval minutes of failures
