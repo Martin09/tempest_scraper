@@ -215,7 +215,7 @@ def _map_raw_data_to_weather(raw_data: dict[str, Any], data: WeatherData) -> Wea
         "brightness": ("illuminance", _safe_parse_int),
         "delta_t": ("delta_t", _safe_parse_float),
         "dew_point": ("dew_point", _safe_parse_float),
-        "humidity": ("humidity", _safe_parse_float),
+        "relative_humidity": ("humidity", _safe_parse_float),
         "lightning_strike_count_last_3hr": ("lightning_strikes_last_3_hours", _safe_parse_int),
         "lightning_strike_last_distance": ("distance_last_lightning_strike", str),
         "precip_accum_local_day": ("precipitation_today", _safe_parse_float),
