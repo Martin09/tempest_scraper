@@ -69,6 +69,30 @@ SENSOR_CONFIGS: list[SensorConfig] = [
         unit_of_measurement="°C",
     ),
     SensorConfig(
+        object_id="feels_like",
+        name="Feels Like",
+        field="feels_like",
+        device_class="temperature",
+        state_class="measurement",
+        unit_of_measurement="°C",
+    ),
+    SensorConfig(
+        object_id="heat_index",
+        name="Heat Index",
+        field="heat_index",
+        device_class="temperature",
+        state_class="measurement",
+        unit_of_measurement="°C",
+    ),
+    SensorConfig(
+        object_id="wind_chill",
+        name="Wind Chill",
+        field="wind_chill",
+        device_class="temperature",
+        state_class="measurement",
+        unit_of_measurement="°C",
+    ),
+    SensorConfig(
         object_id="sea_level_pressure",
         name="Sea Level Pressure",
         field="sea_level_pressure",
@@ -183,6 +207,13 @@ SENSOR_CONFIGS: list[SensorConfig] = [
         unit_of_measurement="lx",
     ),
     SensorConfig(
+        object_id="air_density",
+        name="Air Density",
+        field="air_density",
+        state_class="measurement",
+        unit_of_measurement="kg/m³",
+    ),
+    SensorConfig(
         object_id="wet_bulb_temperature",
         name="Wet Bulb Temperature",
         field="wet_bulb_temperature",
@@ -208,6 +239,17 @@ SENSOR_CONFIGS: list[SensorConfig] = [
         name="Lightning Strikes Last 3h",
         field="lightning_strikes_last_3_hours",
         state_class="measurement",
+    ),
+    SensorConfig(
+        object_id="lightning_strike_count",
+        name="Lightning Strike Count",
+        field="lightning_strike_count",
+        state_class="measurement",
+    ),
+    SensorConfig(
+        object_id="lightning_last_detected",
+        name="Lightning Last Detected",
+        field="lightning_last_detected",
     ),
 ]
 

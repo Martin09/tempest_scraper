@@ -10,7 +10,7 @@ from dataclasses import dataclass
 class WeatherData:
     """Canonical weather data model for the Tempest scraper.
 
-    Field names here are the single source of truth; both scrapers and all
+    Field names here are the single source of truth; all scrapers and all
     MQTT sensor templates must reference these exact names.
     """
 
@@ -25,6 +25,9 @@ class WeatherData:
     temperature: float | None = None  # °C
     humidity: float | None = None  # %
     dew_point: float | None = None  # °C
+    feels_like: float | None = None  # °C
+    heat_index: float | None = None  # °C
+    wind_chill: float | None = None  # °C
 
     # Pressure
     sea_level_pressure: float | None = None  # mbar
@@ -51,6 +54,7 @@ class WeatherData:
     illuminance: int | None = None  # lux
 
     # Advanced
+    air_density: float | None = None  # kg/m³
     wet_bulb_temperature: float | None = None  # °C
     delta_t: float | None = None  # °C
 
@@ -62,3 +66,5 @@ class WeatherData:
     # Lightning
     distance_last_lightning_strike: str | None = None
     lightning_strikes_last_3_hours: int = 0
+    lightning_strike_count: int = 0
+    lightning_last_detected: str | None = None

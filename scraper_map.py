@@ -210,12 +210,17 @@ def _process_wind_direction(value: str | None) -> tuple[int | None, str | None]:
 def _map_raw_data_to_weather(raw_data: dict[str, Any], data: WeatherData) -> WeatherData:
     """Map raw data to WeatherData object."""
     mapping = {
+        "air_density": ("air_density", _safe_parse_float),
         "air_temperature": ("temperature", _safe_parse_float),
         "barometric_pressure": ("station_pressure", _safe_parse_float),
         "brightness": ("illuminance", _safe_parse_int),
         "delta_t": ("delta_t", _safe_parse_float),
         "dew_point": ("dew_point", _safe_parse_float),
+        "feels_like": ("feels_like", _safe_parse_float),
+        "heat_index": ("heat_index", _safe_parse_float),
         "relative_humidity": ("humidity", _safe_parse_float),
+        "lightning_strike_count": ("lightning_strike_count", _safe_parse_int),
+        "lightning_strike_last_epoch": ("lightning_last_detected", str),
         "lightning_strike_count_last_3hr": ("lightning_strikes_last_3_hours", _safe_parse_int),
         "lightning_strike_last_distance": ("distance_last_lightning_strike", str),
         "precip_accum_local_day": ("precipitation_today", _safe_parse_float),
@@ -227,6 +232,7 @@ def _map_raw_data_to_weather(raw_data: dict[str, Any], data: WeatherData) -> Wea
         "uv": ("uv_index", _safe_parse_float),
         "wet_bulb_temperature": ("wet_bulb_temperature", _safe_parse_float),
         "wind_avg": ("wind_speed", _safe_parse_float),
+        "wind_chill": ("wind_chill", _safe_parse_float),
         "wind_gust": ("wind_gust", _safe_parse_float),
         "wind_lull": ("wind_lull", _safe_parse_float),
     }
