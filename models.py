@@ -52,7 +52,6 @@ class WeatherData:
 
     # Advanced
     wet_bulb_temperature: float | None = None  # °C
-    wet_bulb_globe_temperature: float | None = None  # °C
     delta_t: float | None = None  # °C
 
     # Flags

@@ -191,14 +191,6 @@ SENSOR_CONFIGS: list[SensorConfig] = [
         unit_of_measurement="°C",
     ),
     SensorConfig(
-        object_id="wet_bulb_globe_temperature",
-        name="WBGT",
-        field="wet_bulb_globe_temperature",
-        device_class="temperature",
-        state_class="measurement",
-        unit_of_measurement="°C",
-    ),
-    SensorConfig(
         object_id="delta_t",
         name="Delta T",
         field="delta_t",

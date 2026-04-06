@@ -226,7 +226,6 @@ def _map_raw_data_to_weather(raw_data: dict[str, Any], data: WeatherData) -> Wea
         "solar_radiation": ("solar_radiation", _safe_parse_int),
         "uv": ("uv_index", _safe_parse_float),
         "wet_bulb_temperature": ("wet_bulb_temperature", _safe_parse_float),
-        "wet_bulb_globe_temperature": ("wet_bulb_globe_temperature", _safe_parse_float),
         "wind_avg": ("wind_speed", _safe_parse_float),
         "wind_gust": ("wind_gust", _safe_parse_float),
         "wind_lull": ("wind_lull", _safe_parse_float),
