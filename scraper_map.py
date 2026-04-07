@@ -41,22 +41,41 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def _safe_parse_float(value: Any | None) -> float | None:
-    """Safely parses string or number to float, removing units like '°C', '%', etc."""
+    """Safely parses string or number to float, removing units like '°C', '%', etc.
+
+    Extracts only the *first* numeric token so that trailing unit text
+    (e.g. the "2" in "W/m2" from ``<sup>2</sup>``) is never appended to the
+    value.
+    """
     if value is None:
         return None
     try:
-        # Convert to string, remove common units/symbols, handle commas, strip
-        text_value = str(value)
-        cleaned_value = re.sub(r"[^0-9.,-]", "", text_value).replace(",", ".").strip()
-        if not cleaned_value or cleaned_value in ["---", "-", "."]:
+        text_value = str(value).strip()
+        if not text_value or text_value in ["---", "-"]:
             return None
-        if (
-            cleaned_value.count(".") > 1
-            or cleaned_value.count("-") > 1
-            or (cleaned_value.count("-") == 1 and not cleaned_value.startswith("-"))
-        ):
+
+        # Match the first number: optional sign, digits with optional
+        # comma/period decimal separator  (e.g. "-12.3", "1,5", "789", "1,089")
+        match = re.match(r"^(-?\d[\d.,]*\d|-?\d)", text_value)
+        if not match:
             return None
-        return float(cleaned_value)
+
+        num_str = match.group(1)
+
+        # Decide whether commas are thousands separators or decimal separators:
+        #   - "1,089"  → thousands separator (comma + exactly 3 digits at end) → remove
+        #   - "787,2"  → European decimal separator → replace with "."
+        if "," in num_str:
+            if re.fullmatch(r"-?\d{1,3}(,\d{3})+(\.\d+)?", num_str):
+                # Thousands-separated (e.g. "1,089" or "1,089.5")
+                num_str = num_str.replace(",", "")
+            else:
+                # European decimal comma (e.g. "787,2")
+                num_str = num_str.replace(",", ".")
+
+        if num_str.count(".") > 1:
+            return None
+        return float(num_str)
     except (ValueError, TypeError):
         logging.debug(f"Could not parse float from: '{value}'")
         return None
