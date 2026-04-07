@@ -2,6 +2,7 @@
 .git/
 .gitignore
 .ruff_cache/
+.pytest_cache/
 __pycache__/
 *.pyc
 *.pyo
@@ -10,4 +11,11 @@ __pycache__/
 !.env.example
 tests/
 *.md
+*.tar
+*.tar.gz
 .vscode/
+.github/
+.pre-commit-config.yaml
+LICENSE
+Dockerfile
+docker-compose*.yml
